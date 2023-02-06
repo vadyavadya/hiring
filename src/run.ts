@@ -2,19 +2,12 @@ import { IExecutor } from './Executor';
 import ITask from './Task';
 
 export default async function run(executor: IExecutor, queue: AsyncIterable<ITask>, maxThreads = 0) {
+
     maxThreads = Math.max(0, maxThreads);
     let inWork: number[] = [];
     let memory: ITask[] = [];
     let streams = 0;
     let iterator = queue[Symbol.asyncIterator]();
-
-    /* let task = await iterator.next();
-    for (let i = 0; i < 10; i++) {
-        console.log('my', task);
-        await executor.executeTask(task.value);
-        task = await iterator.next();
-    }
-    return */
 
     let main = new Promise(resolve => {
 
@@ -22,7 +15,6 @@ export default async function run(executor: IExecutor, queue: AsyncIterable<ITas
             streams += x;
             if (streams == 0) resolve('done');
         }
-
 
         async function thunderOfCount(task: ITask, callback: Function) {
             if (inWork.indexOf(task.targetId) == -1) {
@@ -77,10 +69,11 @@ export default async function run(executor: IExecutor, queue: AsyncIterable<ITas
         }
 
         async function thunderMany(task: ITask) {
-
             if (inWork.indexOf(task.targetId) == -1) {
                 inWork.push(task.targetId);
+
                 await executor.executeTask(task);
+                
                 inWork.splice(inWork.indexOf(task.targetId), 1);
             } else {
                 memory.push(task);
